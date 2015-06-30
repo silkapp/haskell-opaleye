@@ -197,19 +197,6 @@ dropAndCreateTable columnType (t, cols) = String.fromString drop_
                 ++ " (" ++ commas cols ++ ");"
         integer c = ("\"" ++ c ++ "\"" ++ " " ++ columnType)
         commas = L.intercalate "," . map integer
-<<<<<<< HEAD
-        
-||||||| parent of c28dca1... test that the array aggregation works correctly #52
-
-dropAndCreateTableSerial :: (String, [String]) -> PGS.Query
-dropAndCreateTableSerial (t, cols) = String.fromString drop_
-  where drop_ = "DROP TABLE IF EXISTS " ++ t ++ ";"
-                ++ "CREATE TABLE " ++ t
-                ++ " (" ++ commas cols ++ ");"
-        integer c = ("\"" ++ c ++ "\"" ++ " SERIAL")
-        commas = L.intercalate "," . map integer
-
-=======
 
 dropAndCreateTableInt :: (String, [String]) -> PGS.Query
 dropAndCreateTableInt = dropAndCreateTable "integer"
@@ -217,15 +204,6 @@ dropAndCreateTableInt = dropAndCreateTable "integer"
 dropAndCreateTableText :: (String, [String]) -> PGS.Query
 dropAndCreateTableText = dropAndCreateTable "text"
 
-dropAndCreateTableSerial :: (String, [String]) -> PGS.Query
-dropAndCreateTableSerial (t, cols) = String.fromString drop_
-  where drop_ = "DROP TABLE IF EXISTS " ++ t ++ ";"
-                ++ "CREATE TABLE " ++ t
-                ++ " (" ++ commas cols ++ ");"
-        integer c = ("\"" ++ c ++ "\"" ++ " SERIAL")
-        commas = L.intercalate "," . map integer
-
->>>>>>> c28dca1... test that the array aggregation works correctly #52
 type Table_ = (String, [String])
 
 -- This should ideally be derived from the table definition above
@@ -238,24 +216,12 @@ tables = map columns2 ["table1", "table2", "table3", "table4"]
          ++ [("keywordtable", ["column", "where"])]
 
 dropAndCreateDB :: PGS.Connection -> IO ()
-<<<<<<< HEAD
-dropAndCreateDB conn = mapM_ execute tables
-  where execute = PGS.execute_ conn . dropAndCreateTable
-||||||| parent of c28dca1... test that the array aggregation works correctly #52
 dropAndCreateDB conn = do
   mapM_ execute tables
-  mapM_ executeSerial serialTables
-  where execute = PGS.execute_ conn . dropAndCreateTable
-        executeSerial = PGS.execute_ conn . dropAndCreateTableSerial
-=======
-dropAndCreateDB conn = do
-  mapM_ execute tables
-  executeTextTable
-  mapM_ executeSerial serialTables
+  _ <- executeTextTable
+  return ()
   where execute = PGS.execute_ conn . dropAndCreateTableInt
         executeTextTable = (PGS.execute_ conn . dropAndCreateTableText . columns2) "table6"
-        executeSerial = PGS.execute_ conn . dropAndCreateTableSerial
->>>>>>> c28dca1... test that the array aggregation works correctly #52
 
 type Test = PGS.Connection -> IO Bool
 
@@ -345,10 +311,17 @@ testAggregateProfunctor = testG q expected
                            (\(x, y) -> aggregateCoerceFIXME' x * y)
                            (PP.p2 (O.sum, O.count))
 
-testStringAggregate :: Test
-testStringAggregate = testG q expected
+testStringArrayAggregate :: Test
+testStringArrayAggregate = testG q expected
   where q = O.aggregate (PP.p2 (O.array, O.min)) table6Q
         expected r = [(map fst table6data, minimum (map snd table6data))] == r
+
+testStringAggregate :: Test
+testStringAggregate = testG q expected
+  where q = O.aggregate (PP.p2 ((O.string . O.pgString) "_", O.groupBy)) table6Q
+        expected r = [(
+          (foldl1 (\x y -> x ++ "_" ++ y) . map fst) table6data ,
+          head (map snd table6data))] == r
 
 testOrderByG :: O.Order (Column O.PGInt4, Column O.PGInt4)
                 -> ((Int, Int) -> (Int, Int) -> Ordering)
