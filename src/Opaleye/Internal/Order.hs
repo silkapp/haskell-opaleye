@@ -9,6 +9,7 @@ import qualified Opaleye.Internal.HaskellDB.PrimQuery as HPQ
 import qualified Data.Functor.Contravariant as C
 import qualified Data.Profunctor as P
 import qualified Data.Monoid as M
+import qualified Data.Semigroup as S
 
 data SingleOrder a = SingleOrder HPQ.OrderOp (a -> HPQ.PrimExpr)
 
@@ -26,9 +27,12 @@ newtype Order a = Order [SingleOrder a]
 instance C.Contravariant Order where
   contramap f (Order xs) = Order (fmap (C.contramap f) xs)
 
+instance S.Semigroup (Order a) where
+  Order o <> Order o' = Order (o S.<> o')
+
 instance M.Monoid (Order a) where
   mempty = Order M.mempty
-  Order o `mappend` Order o' = Order (o `M.mappend` o')
+  mappend = (S.<>)
 
 order :: HPQ.OrderOp -> (a -> C.Column b) -> Order a
 order op f = C.contramap f (Order [SingleOrder op IC.unColumn])
