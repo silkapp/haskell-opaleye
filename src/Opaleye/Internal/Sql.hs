@@ -55,7 +55,7 @@ data Binary = Binary {
 } deriving Show
 
 data JoinType = LeftJoin | RightJoin | FullJoin deriving Show
-data BinOp = Except | Union | UnionAll deriving Show
+data BinOp = Except | ExceptAll | Union | UnionAll | Intersect | IntersectAll deriving Show
 
 data TableName = String
 
@@ -154,9 +154,12 @@ joinType PQ.FullJoin = FullJoin
 
 binOp :: PQ.BinOp -> BinOp
 binOp o = case o of
-  PQ.Except   -> Except
-  PQ.Union    -> Union
-  PQ.UnionAll -> UnionAll
+  PQ.Except       -> Except
+  PQ.ExceptAll    -> ExceptAll
+  PQ.Union        -> Union
+  PQ.UnionAll     -> UnionAll
+  PQ.Intersect    -> Intersect
+  PQ.IntersectAll -> IntersectAll
 
 newSelect :: From
 newSelect = From {

@@ -9,7 +9,7 @@ import           Opaleye.Internal.HaskellDB.PrimQuery (Symbol)
 data LimitOp = LimitOp Int | OffsetOp Int | LimitOffsetOp Int Int
              deriving Show
 
-data BinOp = Except | Union | UnionAll deriving Show
+data BinOp = Except | ExceptAll | Union | UnionAll | Intersect | IntersectAll deriving Show
 data JoinType = LeftJoin | RightJoin | FullJoin deriving Show
 
 -- In the future it may make sense to introduce this datatype
