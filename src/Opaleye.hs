@@ -3,6 +3,7 @@ module Opaleye ( module Opaleye.Aggregate
                , module Opaleye.Column
                , module Opaleye.Distinct
                , module Opaleye.Join
+               , module Opaleye.Label
                , module Opaleye.Manipulation
                , module Opaleye.Operators
                , module Opaleye.Order
@@ -19,6 +20,7 @@ import Opaleye.Binary
 import Opaleye.Column
 import Opaleye.Distinct
 import Opaleye.Join
+import Opaleye.Label
 import Opaleye.Manipulation
 import Opaleye.Operators
 import Opaleye.Order

@@ -21,6 +21,7 @@ data Select = SelectFrom From
             | SelectJoin Join
             | SelectValues Values
             | SelectBinary Binary
+            | SelectLabel Label
             deriving Show
 
 data From = From {
@@ -60,9 +61,14 @@ data TableName = String
 
 data Returning a = Returning a [HSql.SqlExpr]
 
+data Label = Label {
+  lLabel  :: String,
+  lSelect :: Select
+} deriving Show
+
 sqlQueryGenerator :: PQ.PrimQueryFold Select
 sqlQueryGenerator = (unit, baseTable, product, aggregate, order, limit_, join,
-                     values, binary)
+                     values, binary, label)
 
 sql :: ([HPQ.PrimExpr], PQ.PrimQuery, T.Tag) -> Select
 sql (pes, pq, t) = SelectFrom $ newSelect { attrs = makeAttrs pes
@@ -167,3 +173,6 @@ sqlExpr = SG.sqlExpr SD.defaultSqlGenerator
 sqlBinding :: (Symbol, HPQ.PrimExpr) -> (HSql.SqlExpr, Maybe HSql.SqlColumn)
 sqlBinding (Symbol sym t, pe) =
   (sqlExpr pe, Just (HSql.SqlColumn (T.tagWith t sym)))
+
+label :: String -> Select -> Select
+label l s = SelectLabel (Label l s)
