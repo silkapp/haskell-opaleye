@@ -108,12 +108,13 @@ defaultSqlExpr gen expr =
                                 UnOpFun     -> FunSqlExpr op' [e']
                                 UnOpPrefix  -> PrefixSqlExpr op' (ParensSqlExpr e')
                                 UnOpPostfix -> PostfixSqlExpr op' e'
-      AggrExpr op e    -> let op' = showAggrOp op
-                              e' = (sqlExpr gen) e
-                              moreAggrFunParams = case op of
-                                AggrStringAggr primE -> [(sqlExpr gen) primE]
-                                _ -> []
-                           in AggrFunSqlExpr op' (e' : moreAggrFunParams)
+      AggrExpr op e ord -> let op' = showAggrOp op
+                               e' = (sqlExpr gen) e
+                               ord' = toSqlOrder gen <$> ord
+                               moreAggrFunParams = case op of
+                                 AggrStringAggr primE -> [(sqlExpr gen) primE]
+                                 _ -> []
+                            in AggrFunSqlExpr op' (e' : moreAggrFunParams) ord'
       ConstExpr l      -> ConstSqlExpr (sqlLiteral gen l)
       CaseExpr cs e    -> let cs' = [(sqlExpr gen c, sqlExpr gen x)| (c,x) <- cs] 
                               e'  = sqlExpr gen e

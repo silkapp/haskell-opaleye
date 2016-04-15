@@ -1,8 +1,8 @@
 -- | Perform aggregations on query results.
-module Opaleye.Aggregate (module Opaleye.Aggregate, Aggregator) where
+module Opaleye.Aggregate (module Opaleye.Aggregate, Aggregator, orderAggregate) where
 
 import qualified Opaleye.Internal.Aggregate as A
-import           Opaleye.Internal.Aggregate (Aggregator)
+import           Opaleye.Internal.Aggregate (Aggregator, orderAggregate)
 import qualified Opaleye.Internal.Column as IC
 import           Opaleye.QueryArr (Query)
 import qualified Opaleye.Internal.QueryArr as Q

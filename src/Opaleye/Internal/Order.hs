@@ -44,6 +44,12 @@ orderByU os (columns, primQ, t) = (columns, primQ', t)
         orderExprs = map (\(SingleOrder op f)
                           -> HPQ.OrderExpr op (f columns)) sos
 
+orderExprs :: a -> Order a -> [HPQ.OrderExpr]
+orderExprs x (Order os) = map (orderExpr x) os
+
+orderExpr :: a -> SingleOrder a -> HPQ.OrderExpr
+orderExpr x (SingleOrder op mkE) = HPQ.OrderExpr op (mkE x)
+
 limit' :: Int -> (a, PQ.PrimQuery, T.Tag) -> (a, PQ.PrimQuery, T.Tag)
 limit' n (x, q, t) = (x, PQ.Limit (PQ.LimitOp n) q, t)
 
