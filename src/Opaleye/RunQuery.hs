@@ -55,6 +55,49 @@ runQueryExplicit (QueryRunner u rowParser) conn q =
         -- FIXME: We're doing work twice here
         (b, _, _) = Q.runSimpleQueryArrStart q ()
 
+foldQuery
+  :: D.Default QueryRunner columns haskells
+  => PGS.Connection
+  -> Query columns
+  -> a
+  -> (a -> haskells -> IO a)
+  -> IO a
+foldQuery = foldQueryWithOptions PGS.defaultFoldOptions
+
+foldQueryExplicit
+  :: QueryRunner columns haskells
+  -> PGS.Connection
+  -> Query columns
+  -> a
+  -> (a -> haskells -> IO a)
+  -> IO a
+foldQueryExplicit qr = foldQueryExplicitWithOptions qr PGS.defaultFoldOptions
+
+foldQueryWithOptions
+  :: D.Default QueryRunner columns haskells
+  => PGS.FoldOptions
+  -> PGS.Connection
+  -> Query columns
+  -> a
+  -> (a -> haskells -> IO a)
+  -> IO a
+foldQueryWithOptions = foldQueryExplicitWithOptions D.def
+
+foldQueryExplicitWithOptions
+  :: QueryRunner columns haskells
+  -> PGS.FoldOptions
+  -> PGS.Connection
+  -> Query columns
+  -> a
+  -> (a -> haskells -> IO a)
+  -> IO a
+foldQueryExplicitWithOptions (QueryRunner u rowParser) opts conn q =
+  PGS.foldWithOptionsAndParser_ opts (rowParser b) conn sql
+  where sql :: PGS.Query
+        sql = String.fromString (S.showSqlForPostgresExplicit u q)
+        -- FIXME: We're doing work twice here
+        (b, _, _) = Q.runSimpleQueryArrStart q ()
+
 -- | Use 'queryRunnerColumn' to make an instance to allow you to run queries on
 --   your own datatypes.  For example:
 --
