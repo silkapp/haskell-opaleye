@@ -32,7 +32,7 @@ library
     , contravariant       >= 0.4.4   && < 1.4
     , postgresql-simple   >= 0.4.8.0 && < 0.6
     , pretty              >= 1.1.1.0 && < 1.2
-    , product-profunctors >= 0.6.2   && < 0.7
+    , product-profunctors >= 0.6.2   && < 0.8
     , profunctors         >= 4.0     && < 5.2
     , semigroups          >= 0.13    && < 0.19
     , text                >= 0.11    && < 1.3
