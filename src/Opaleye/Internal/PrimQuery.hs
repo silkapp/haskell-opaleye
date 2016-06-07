@@ -10,7 +10,7 @@ data LimitOp = LimitOp Int | OffsetOp Int | LimitOffsetOp Int Int
              deriving Show
 
 data BinOp = Except | Union | UnionAll deriving Show
-data JoinType = LeftJoin deriving Show
+data JoinType = LeftJoin | RightJoin | FullJoin deriving Show
 
 -- In the future it may make sense to introduce this datatype
 -- type Bindings a = [(Symbol, a)]

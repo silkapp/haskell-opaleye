@@ -71,6 +71,8 @@ ppSelectLabel l = text "/*" <+> text (defuseComments (Sql.lLabel l)) <+> text "*
 
 ppJoinType :: Sql.JoinType -> Doc
 ppJoinType Sql.LeftJoin = text "LEFT OUTER JOIN"
+ppJoinType Sql.RightJoin = text "RIGHT OUTER JOIN"
+ppJoinType Sql.FullJoin = text "FULL OUTER JOIN"
 
 ppAttrs :: [(HSql.SqlExpr, Maybe HSql.SqlColumn)] -> Doc
 ppAttrs [] = text "*"

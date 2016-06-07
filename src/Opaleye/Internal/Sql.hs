@@ -54,7 +54,7 @@ data Binary = Binary {
   bSelect2 :: Select
 } deriving Show
 
-data JoinType = LeftJoin deriving Show
+data JoinType = LeftJoin | RightJoin | FullJoin deriving Show
 data BinOp = Except | Union | UnionAll deriving Show
 
 data TableName = String
@@ -149,6 +149,8 @@ binary op pes (select1, select2) = SelectBinary Binary {
 
 joinType :: PQ.JoinType -> JoinType
 joinType PQ.LeftJoin = LeftJoin
+joinType PQ.RightJoin = RightJoin
+joinType PQ.FullJoin = FullJoin
 
 binOp :: PQ.BinOp -> BinOp
 binOp o = case o of
