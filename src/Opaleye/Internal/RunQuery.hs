@@ -2,11 +2,9 @@
 
 module Opaleye.Internal.RunQuery where
 
-import           Control.Applicative (Applicative, pure, (<*>))
-
 import           Database.PostgreSQL.Simple.Internal (RowParser)
 import           Database.PostgreSQL.Simple.FromField (FieldParser, FromField,
-                                                       fromField)
+                                                       fromField, pgArrayFieldParser)
 import           Database.PostgreSQL.Simple.FromRow (fieldWith)
 import           Database.PostgreSQL.Simple.Types (fromPGArray)
 
@@ -29,25 +27,9 @@ import qualified Data.Text.Lazy as LT
 import qualified Data.ByteString as SBS
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Time as Time
+import           Data.Typeable (Typeable)
 import           Data.UUID (UUID)
 import           GHC.Int (Int64)
-
--- { Only needed for annoying postgresql-simple patch below
-
-import           Control.Applicative ((<$>))
-import           Database.PostgreSQL.Simple.FromField
-  (Field, typoid, typeOid, typelem, TypeInfo,
-   ResultError(UnexpectedNull, ConversionFailed, Incompatible),
-   typdelim, typeInfo, returnError, Conversion)
-import           Database.PostgreSQL.Simple.Types (PGArray(PGArray))
-import           Data.Attoparsec.ByteString.Char8 (Parser, parseOnly)
-import qualified Database.PostgreSQL.Simple.TypeInfo as TI
-import qualified Database.PostgreSQL.Simple.Arrays as Arrays
-import           Database.PostgreSQL.Simple.Arrays (array, fmt)
-import           Data.String (fromString)
-import           Data.Typeable (Typeable)
-
--- }
 
 -- We introduce 'QueryRunnerColumn' which is *not* a Product
 -- Profunctor because it is the only way I know of to get the instance
@@ -153,7 +135,7 @@ arrayColumn = C.unsafeCoerce
 
 instance (Typeable b, QueryRunnerColumnDefault a b) =>
          QueryRunnerColumnDefault (T.PGArray a) [b] where
-  queryRunnerColumnDefault = QueryRunnerColumn (P.lmap arrayColumn c) ((fmap . fmap . fmap) fromPGArray (arrayFieldParser f))
+  queryRunnerColumnDefault = QueryRunnerColumn (P.lmap arrayColumn c) ((fmap . fmap . fmap) fromPGArray (pgArrayFieldParser f))
     where QueryRunnerColumn c f = queryRunnerColumnDefault
 
 -- }
@@ -181,36 +163,3 @@ instance PP.SumProfunctor QueryRunner where
                          (PackMap.eitherFunction fr gr)
     where QueryRunner fu fr = f
           QueryRunner gu gr = g
-
--- }
-
--- { Annoying postgresql-simple patch.  Delete this when it is merged upstream.
-
-arrayFieldParser :: Typeable a => FieldParser a -> FieldParser (PGArray a)
-arrayFieldParser
-    fieldParser f mdat = do
-        info <- typeInfo f
-        case info of
-          TI.Array{} ->
-              case mdat of
-                Nothing  -> returnError UnexpectedNull f ""
-                Just dat -> do
-                   case parseOnly (fromArray fieldParser info f) dat of
-                     Left  err  -> returnError ConversionFailed f err
-                     Right conv -> PGArray <$> conv
-          _ -> returnError Incompatible f ""
-
-fromArray :: FieldParser a -> TypeInfo -> Field -> Parser (Conversion [a])
-fromArray fieldParser typeInfo f = sequence . (parseIt <$>) <$> array delim
-  where
-    delim = typdelim (typelem typeInfo)
-    fElem = f{ typeOid = typoid (typelem typeInfo) }
-
-    parseIt item =
-        fieldParser f' $ if item' == fromString "NULL" then Nothing else Just item'
-      where
-        item' = fmt delim item
-        f' | Arrays.Array _ <- item = f
-           | otherwise              = fElem
-
--- }
